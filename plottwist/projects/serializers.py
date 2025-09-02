@@ -8,6 +8,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PledgeSerializer(serializers.ModelSerializer):
+    supporter = serializers.ReadOnlyField(source='owner.id')
+
     class Meta:
         model = apps.get_model('projects.Pledge')
         fields = '__all__'
@@ -31,8 +33,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
         return instance
     
 class pledgeDetailSerializer(serializers.ModelSerializer):
-    fundraisers = ProjectSerializer(many=True, read_only=True)
-
+    
     def update(self, instance, validated_data):
         # Prevent updating the supporter field
         instance.amount = validated_data.get('amount', instance.amount)

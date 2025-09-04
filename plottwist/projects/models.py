@@ -27,7 +27,7 @@ class Pledge(models.Model):
     anonymous = models.BooleanField()
     supporter = models.CharField(max_length=200)
     project = models.ForeignKey(
-        'Pledge',
+        'Project',
         on_delete=models.CASCADE,
         related_name='pledges', 
         )

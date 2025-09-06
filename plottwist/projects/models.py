@@ -36,6 +36,6 @@ class Pledge(models.Model):
         )
     supporter = models.ForeignKey(
         get_user_model(),
-        related_name='pledges'
+        related_name='pledges',
         on_delete=models.CASCADE,
     )

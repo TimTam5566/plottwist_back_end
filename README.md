@@ -26,26 +26,55 @@ For anyone who needs a short burst of creative energy to break up the monotony/s
     - onectivity to update the pledge poem/story lines to the project pages
 
 ### API Spec
-{{ Fill out the table below to define your endpoints. An example of what this might look like is shown at the bottom of the page. 
 
-It might look messy here in the PDF, but once it's rendered it looks very neat! 
 
-It can be helpful to keep the markdown preview open in VS Code so that you can see what you're typing more easily. }}
+| URL              | HTTP Method | Purpose                             | Request Body | Success Response Code | Authentication/Authorisation |
+| ---------------- | ----------- | ----------------------------------- | ------------ | --------------------- | ---------------------------- |
+| /project/        | GET         | Fetch all projects                  | N/A.         | 200                   | None                         |
+| /project/        | POST        | Create new project                  | JSON Payload | 201                   | Any authorised user          |
+| /pledge/         | GET         | Fetch all Pledges                   | N/A          | 201                   | None                         |
+| /pledge/.        | POST        | Create a pledge to a chosen project | JSOn Payload | 201                   | Any authorised user          |
+| /project/pk/     | GET         | Fetch a specific project            | N/A          | 200                   | None                         |
+| /pledge/pk       | GET         | Fetch a specific pledge             | N/A          | 200                   | None                         |
+| /users/          | POST        | Create a new user                   | JSON Payload | 200                   | authorised user              |
+| /users/pk/       | GET         | Fetch a specific user               | N/A          | 200                   | admin                        |
+| /users/          | get         | Fetch all users                     | N/A          | 200                   | admin                        |
+| /api-auth-token/ | POST        | Obtain auth Token                   | JSON Payload | authorised user       | none.                        |
 
-| URL | HTTP Method | Purpose | Request Body | Success Response Code | Authentication/Authorisation |
-| --- | ----------- | ------- | ------------ | --------------------- | ---------------------------- |
-|/project/|GET|Fetch all projects|N/A. |200|None|
-|/project/|POST|Create new project|JSON Payload|201|Any authorised user|
-|/pledge/|GET|Fetch all Pledges|N/A|201|None|
-|/pledge/POST|Create a pledge to a chosen project|JSON Payload|201|Any authorised user|
-|/project/pk/|Fetch a specific project|N/A|200|None|
-|/pledge/pk|Fetch a specific pledge|N/A|200|None|
-|/user/|POST|Create a new user|JSON Payload|200|authorised user|
-|/api-auth-token/|POST|Obtain auth Token|JSON Payload|authorised user|   
 
 
 
 ### DB Schema
-![]( {{ ./relative/path/to/your/schema/image.png }} )
+![](./database.drawio.svg)
+
+# Link to Deployed project
+
+https://plot-twist-you-are-the-author-fdc848555cc9.herokuapp.com/pledges/34/
+
+# Screenshots users/api-token-auth
+
+![Desktop Screenshot - POST Auth Token Create](.//plottwist/images/post_api_token_auth.png)
+![Desktop Screenshot - POST User Create](.//plottwist/images/post_users_create_new.png)
+
+# Screenshot pledges
+![Desktop Screenshot - PUT Amend specific pledge](.//plottwist/images/put_pledges_pk.png)
+![Desktop Screenshot - GET Retrieve all pledges](.//plottwist/images/get_pledges_all.png)
+
+# Screenshots projects
+![Desktop Screenshot - GET Retrieve specific project](.//plottwist/images/get_project_pk.png)
+![Desktop Screenshot - POST Creat new project](.//plottwist/images/post_project_create_new.png)
+
+# Instructions to register a new user
+
+Create a post 
+
+# Instructions to create a new fundraiser
+
+Create a 
+
+
+
+
+
 
 

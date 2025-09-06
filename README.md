@@ -64,17 +64,33 @@ https://plot-twist-you-are-the-author-fdc848555cc9.herokuapp.com/pledges/34/
 ![Desktop Screenshot - GET Retrieve specific project](.//plottwist/images/get_project_pk.png)
 ![Desktop Screenshot - POST Creat new project](.//plottwist/images/post_project_create_new.png)
 
-# Instructions to register a new user
+# Instructions to register a new user (in insomnia)
+
+Create a post
+POST /users/ new user
+enter JSON 
+{
+    "password": "(enter the password)", [CharField]
+    "username": "(enter the username) [Charfield]
+}
+
+press send - dont forget to write details down.
+
+# Instructions to create a new fundraiser/project
 
 Create a post 
+POST /project/ - create new project
+enter JSON
+{
+    "title": [charfield]
+	"description": [textfield]
+	"goal": [integerfield]
+	"image": [url feild]
+	"genre": [charfield]
+	"poemstart": [charfield]
+	"storystart": [charfield]
+	"is_open": [boolean]
+}
 
-# Instructions to create a new fundraiser
-
-Create a 
-
-
-
-
-
-
-
+Fill in the relevant details.
+Hit send.

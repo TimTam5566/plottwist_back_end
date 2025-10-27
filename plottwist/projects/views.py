@@ -1,10 +1,23 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from.permissions import IsOwnerOrReadOnly, IsSupporterOrReadOnly
+from rest_framework.decorators import api_view
+from rest_framework.reverse import reverse
+from .permissions import IsOwnerOrReadOnly, IsSupporterOrReadOnly
 from django.http import Http404
 from .models import Project, Pledge
 from .serializers import ProjectSerializer, PledgeSerializer, ProjectDetailSerializer
+
+@api_view(['GET'])
+def api_root(request, format=None):
+    """
+    API root showing all available endpoints
+    """
+    return Response({
+        'projects': reverse('project-list', request=request, format=format),
+        'pledges': reverse('pledge-list', request=request, format=format),
+        'auth': reverse('api_token_auth', request=request, format=format),
+    })
 
 class ProjectList(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]

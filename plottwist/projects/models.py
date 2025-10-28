@@ -26,7 +26,8 @@ class Project(models.Model):
         upload_to='project_images/',
         null=True,
         blank=True,
-        default='default.jpg'
+        default='default.jpg',
+        help_text='Project cover image (optional, max 2MB)'
     )
     is_open = models.BooleanField(default=True)
     date_created = models.DateTimeField(auto_now_add=True)

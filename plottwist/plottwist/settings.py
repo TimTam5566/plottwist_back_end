@@ -37,7 +37,22 @@ DEBUG = os.environ.get(
 
 ALLOWED_HOSTS = ['*'] # any host is allowed 
 CORS_ORIGIN_ALLOW_ALL = True # any origin is allowed
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5175",  # Your Vite dev server
+    "https://your-production-frontend.com"  # Your production frontend
+]
 
+CORS_ALLOW_CREDENTIALS = True
+
+# Required if using session authentication
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "authorization",
+    "content-type",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
 
 # Application definition
 
@@ -100,10 +115,10 @@ WSGI_APPLICATION = 'plottwist.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',
+        conn_max_age=600
+    )
 }
 
 db_from_env = dj_database_url.config(conn_max_age=600)

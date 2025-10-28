@@ -3,6 +3,8 @@ from django.apps import apps
 
 class ProjectSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.id')  
+    image = serializers.ImageField(required=False, allow_null=True)  # Add this line
+    
     class Meta:
         model = apps.get_model('projects.Project')
         fields = '__all__'

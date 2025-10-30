@@ -3,3 +3,4 @@ pillow==12.0.0
 dj_database_url
 python-dotenv
 djangorestframework
+django-cors-headers

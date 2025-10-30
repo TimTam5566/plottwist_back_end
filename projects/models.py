@@ -2,44 +2,18 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-class Project(models.Model):
-    GENRE_CHOICES = [
-        ('Thriller', 'Thriller'),
-        ('Romance', 'Romance'),
-        ('Modern Drama', 'Modern Drama'),
-        ('Historical', 'Historical'),
-        ('Comedy', 'Comedy'),
-        ('Childrens Fiction', "Children's Fiction"),
-        ('Fantasy/Mythology', 'Fantasy/Mythology'),
-    ]
 
+class Project(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
-    genre = models.CharField(
-        max_length=30,  # Increase max_length if needed
-        choices=GENRE_CHOICES,
-        default='Thriller'
-    )
-    goal = models.IntegerField(
-        help_text='Maximum number of contributions allowed',
-        validators=[
-            MinValueValidator(1, message='Must allow at least 1 contribution'),
-            MaxValueValidator(100, message='Cannot exceed 100 contributions')
-        ]
-    )
-    image = models.CharField(
-        max_length=300,
-        blank=True,
-        help_text='Project cover image URL (optional)'
-    )
+    goal = models.IntegerField()
+    image = models.CharField(max_length=300, blank=True)
+    genre = models.CharField(max_length=100)
+    owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    starting_content = models.TextField(blank=True, default='')  # <-- new field
+    current_content = models.TextField(blank=True, default='')
     is_open = models.BooleanField(default=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    owner = models.ForeignKey(
-        get_user_model(),
-        on_delete=models.CASCADE,
-        related_name='owner_projects'
-    )
-    starting_content = models.TextField()
 
     def __str__(self):
         return self.title

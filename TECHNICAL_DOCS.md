@@ -79,10 +79,8 @@ try:
         project = instance.project
 
         # Append new lines to existing content
-        if instance.poemline:
-            project.poemstart = (project.poemstart or '').strip() + "\n" + instance.poemline.strip()
-        if instance.storyverse:
-            project.storystart = (project.storystart or '').strip() + "\n" + instance.storyverse.strip()
+        if instance.add_content:
+        project.starting_content = (project.starting_content or '').strip() + "\n" + instance.add_content.strip()
 
         project.save()
 except Exception as e:

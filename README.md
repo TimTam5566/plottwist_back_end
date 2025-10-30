@@ -87,8 +87,7 @@ enter JSON
 	"goal": [integerfield]
 	"image": [url feild]
 	"genre": [charfield]
-	"poemstart": [charfield]
-	"storystart": [charfield]
+	"startingcontent": [charfield]
 	"is_open": [boolean]
 }
 

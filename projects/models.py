@@ -11,7 +11,7 @@ class Project(models.Model):
     genre = models.CharField(max_length=100)
     owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     starting_content = models.TextField(blank=True, default='')  # <-- new field
-    current_content = models.TextField(blank=True, default='')
+    current_content = models.TextField(blank=True, default="")
     is_open = models.BooleanField(default=True)
     date_created = models.DateTimeField(auto_now_add=True)
 

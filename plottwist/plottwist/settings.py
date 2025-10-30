@@ -38,20 +38,27 @@ DEBUG = os.environ.get(
 ALLOWED_HOSTS = ['*'] # any host is allowed 
 CORS_ORIGIN_ALLOW_ALL = True # any origin is allowed
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5175",  # Your Vite dev server
+    "http://localhost:5173",  # Your Vite dev server
+    "http://localhost:3000",  # Your Vite dev server
     "https://your-production-frontend.com"  # Your production frontend
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Required if using session authentication
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
 CORS_ALLOW_HEADERS = [
     "accept",
     "authorization",
     "content-type",
     "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
 ]
 
 # Application definition
@@ -80,15 +87,17 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Simple CORS settings for development
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'plottwist.urls'
 
@@ -108,6 +117,7 @@ TEMPLATES = [
     },
 ]
 
+# Update WSGI application path
 WSGI_APPLICATION = 'plottwist.wsgi.application'
 
 
@@ -159,8 +169,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (Uploaded files)
 MEDIA_URL = '/media/'

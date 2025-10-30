@@ -3,41 +3,38 @@ from django.dispatch import receiver
 from django.db import transaction
 import logging
 import json
-from .models import Pledge  # Add this import
+from .models import Pledge
 
 logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender=Pledge)
 def append_pledge_to_project(sender, instance, created, **kwargs):
     """
-    Signal handler that appends pledge content (poem line or story verse) to the associated project
+    Signal handler that appends pledge content to the associated project
     when a new pledge is created.
     """
     if created and instance.project_id:
         try:
             with transaction.atomic():
                 project = instance.project
-                
+
                 if not project:
                     logger.error("Project not found for pledge")
                     return
-                
-                # Enhanced logging
+
                 logger.info(f"""
                     Processing pledge:
                     ID: {instance.id}
                     Project ID: {project.id}
-                    Poem Line: {instance.poemline}
-                    Story Verse: {instance.storyverse}
+                    Added Content: {instance.add_content}
                 """)
 
-                # Append new lines to existing content
-                if instance.poemline:
-                    project.poemstart = (project.poemstart or '').strip() + "\n" + instance.poemline.strip()
-                    logger.info(f"Added poem line to project {project.id}")
-                if instance.storyverse:
-                    project.storystart = (project.storystart or '').strip() + "\n" + instance.storyverse.strip()
-                    logger.info(f"Added story verse to project {project.id}")
+                # Append new content to starting_content
+                new_line = instance.add_content.strip() if instance.add_content else None
+
+                if new_line:
+                    project.starting_content = (project.starting_content or '').strip() + "\n" + new_line
+                    logger.info(f"Added new line to project {project.id}")
 
                 project.save()
                 logger.info(f"Successfully updated project {project.id}")
@@ -46,7 +43,6 @@ def append_pledge_to_project(sender, instance, created, **kwargs):
             logger.error(f"Pledge data: {json.dumps({
                 'id': instance.id,
                 'project_id': instance.project_id,
-                'poemline': instance.poemline,
-                'storyverse': instance.storyverse
+                'add_content': instance.add_content
             }, indent=2)}")
             raise

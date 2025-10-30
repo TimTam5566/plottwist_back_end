@@ -2,50 +2,25 @@ from rest_framework import serializers
 from django.apps import apps
 
 class ProjectSerializer(serializers.ModelSerializer):
-    owner = serializers.ReadOnlyField(source='owner.id')  
-    image = serializers.ImageField(required=False, allow_null=True)  # Add this line
-    
+    owner = serializers.ReadOnlyField(source='owner.id')
+    image = serializers.CharField(required=False, allow_blank=True)
+
     class Meta:
         model = apps.get_model('projects.Project')
         fields = '__all__'
 
     def validate(self, data):
-        
-        """
-        Custom validation to ensure either poemstart or storystart is provided, not both
-        """
-
-        poemstart = data.get('poemstart')
-        storystart = data.get('storystart')
-
-        # Check that at least one content type is provided
-        if not poemstart and not storystart:
-            raise serializers.ValidationError(
-                "Either poemstart or storystart must be provided"
-            )
-
-        # Check that both aren't provided
-        if poemstart and storystart:
-            raise serializers.ValidationError(
-                "Cannot provide both poemstart and storystart"
-            )
-
-        # Validate required fields
+        if not data.get('starting_content'):
+            raise serializers.ValidationError({"starting_content": "This field is required."})
         if not data.get('title'):
             raise serializers.ValidationError("Title is required")
-        
         if not data.get('description'):
             raise serializers.ValidationError("Description is required")
-        
         if not data.get('genre'):
             raise serializers.ValidationError("Genre is required")
-
         return data
 
     def create(self, validated_data):
-        """
-        Custom create method to handle null fields
-        """
         # Ensure one content type is null based on what's provided
         if validated_data.get('poemstart'):
             validated_data['storystart'] = None
@@ -54,7 +29,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
         # Handle optional image field
         if 'image' not in validated_data:
-            validated_data['image'] = None
+            validated_data['image'] = ""
 
         return super().create(validated_data)
 
@@ -67,7 +42,7 @@ class PledgeSerializer(serializers.ModelSerializer):
 
 class ProjectDetailSerializer(ProjectSerializer):
     pledges = PledgeSerializer(many=True, read_only=True)
-    
+
     def update(self, instance, validated_data):
         # Update only editable fields
         instance.title = validated_data.get('title', instance.title)
@@ -81,7 +56,6 @@ class ProjectDetailSerializer(ProjectSerializer):
         # date_created and owner are read-only and shouldn't be updated
         instance.save()
         return instance
-
 
 class PledgeDetailSerializer(PledgeSerializer):
     def update(self, instance, validated_data):

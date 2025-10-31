@@ -138,10 +138,10 @@ class PledgeListCreate(APIView):
         except Project.DoesNotExist:
             return Response({"error": "Project not found."}, status=status.HTTP_404_NOT_FOUND)
         data = request.data.copy()
-        data['project'] = project_id  # Ensure project is set from URL
+        data['project'] = project_id  # Set project from URL
         serializer = PledgeSerializer(data=data)
         if serializer.is_valid():
-            serializer.save(supporter=request.user)  # Only pass supporter, not project
+            serializer.save(supporter=request.user)  # Only supporter here
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

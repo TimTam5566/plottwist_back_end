@@ -131,17 +131,22 @@ class PledgeDetail(APIView):
 
 class PledgeListCreate(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
+    
     def post(self, request, project_id):
+        if not request.user.is_authenticated:
+            return Response(
+                {"error": "The gates remain sealed — no credentials, no quest. Try again or forge a new identity."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
         try:
             project = Project.objects.get(pk=project_id)
         except Project.DoesNotExist:
             return Response({"error": "Project not found."}, status=status.HTTP_404_NOT_FOUND)
         data = request.data.copy()
-        data['project'] = project_id  # Set project from URL
+        data['project'] = project_id
         serializer = PledgeSerializer(data=data)
         if serializer.is_valid():
-            serializer.save(supporter=request.user)  # Only supporter here
+            serializer.save(supporter=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -2,31 +2,9 @@ from rest_framework import serializers
 from django.apps import apps
 
 class ProjectSerializer(serializers.ModelSerializer):
-    owner = serializers.ReadOnlyField(source='owner.id')
-    image = serializers.CharField(required=False, allow_blank=True)
-
     class Meta:
         model = apps.get_model('projects.Project')
         fields = '__all__'
-
-    def validate(self, data):
-        if not data.get('starting_content'):
-            raise serializers.ValidationError({"starting_content": "This field is required."})
-        if not data.get('title'):
-            raise serializers.ValidationError("Title is required")
-        if not data.get('description'):
-            raise serializers.ValidationError("Description is required")
-        if not data.get('genre'):
-            raise serializers.ValidationError("Genre is required")
-        return data
-
-    def create(self, validated_data):
-        # Remove old fields if present
-        
-        if 'image' not in validated_data:
-
-            validated_data['image'] = ""
-        return super().create(validated_data)
 
 class PledgeSerializer(serializers.ModelSerializer):
     supporter = serializers.ReadOnlyField(source='owner.id')

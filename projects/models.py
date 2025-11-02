@@ -7,7 +7,7 @@ class Project(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     goal = models.IntegerField()
-    image = models.CharField(max_length=300, blank=True)
+    image = models.ImageField(upload_to='project_images/', blank=True, null=True)
     genre = models.CharField(max_length=100)
     owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     starting_content = models.TextField(blank=True, default='')  # <-- new field

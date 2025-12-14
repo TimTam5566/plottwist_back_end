@@ -167,6 +167,8 @@ class Pledge(models.Model):
     # The ACTUAL CONTENT being contributed
     # This is the story text, poem verses, etc.
     # Example: "The dragon roared and flames lit up the night sky..."
+    anonymous = models.BooleanField(default=False)
+    # If True, the supporter's name is hidden from public view
 
     def __str__(self):
         return f"{self.supporter} contributed {self.amount} to {self.project}"

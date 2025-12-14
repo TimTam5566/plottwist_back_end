@@ -1,95 +1,241 @@
-# Crowdfunding Back End
-Tammy Healy
-## Planning:
-### Concept/Name
-Plot Twist - You are the author: is a twist on a crowdfunding site where the user adds to a project the includes the start of a short story or poem.
-Creativity is difficult to fit into the busy lives we lead and this allows people to have a short burst of creativity.
+User models and how URLs work
+"""
+HOW URLS WORK:
 
-### Intended Audience/User Stories
-For anyone who needs a short burst of creative energy to break up the monotony/stress of their day.
+These URLs are "nested" under /users/ in your main urls.py
 
-### Front End Pages/Functionality
-- Log in
-    -  log in/sign up for project submission
-    - log in for/sign up supporter
-    - profile information for both
-- home page
-    - featured projects
-    - ability to choose to see all fundraisers
-- Profile page
-    - details of currently logged in users
-    - change details of user accounts
-    - delete user accounts?
-- Projects page
-    - ability to login/signup and create a projec
-    - ability to login/signup to pledge
-    - onectivity to update the pledge poem/story lines to the project pages
+So the full paths are:
+- GET  /users/        → List all users
+- POST /users/        → Create new user (register)
+- GET  /users/1/      → Get user with ID 1
+- GET  /users/42/     → Get user with ID 42
 
-### API Spec
+<int:pk> means "capture a number and call it pk"
+"""
+```
+
+---
+
+## 🔄 How They Work Together
+
+Here's what happens when someone **registers** (creates an account):
+```
+FRONTEND (React)                    BACKEND (Django)
+─────────────────                   ─────────────────
+1. User fills signup form
+   {username, email, password}
+           │
+           ▼
+2. React sends POST to /users/
+           │
+           ▼
+                                    3. urls.py routes to CustomUserList.post()
+                                               │
+                                               ▼
+                                    4. views.py receives request
+                                       Creates serializer with data
+                                               │
+                                               ▼
+                                    5. serializers.py validates data
+                                       - Is username unique?
+                                       - Is email valid?
+                                               │
+                                               ▼
+                                    6. serializer.save() calls create()
+                                       - Uses create_user() to hash password
+                                               │
+                                               ▼
+                                    7. models.py CustomUser saved to database
+                                               │
+                                               ▼
+                                    8. Response sent back (201 Created)
+           │
+           ◄────────────────────────────────────
+           ▼
+9. React receives success
+   Redirects to login page
 
 
-| URL              | HTTP Method | Purpose                             | Request Body | Success Response Code | Authentication/Authorisation |
-| ---------------- | ----------- | ----------------------------------- | ------------ | --------------------- | ---------------------------- |
-| /project/        | GET         | Fetch all projects                  | N/A.         | 200                   | None                         |
-| /project/        | POST        | Create new project                  | JSON Payload | 201                   | Any authorised user          |
-| /pledge/         | GET         | Fetch all Pledges                   | N/A          | 201                   | None                         |
-| /pledge/.        | POST        | Create a pledge to a chosen project | JSOn Payload | 201                   | Any authorised user          |
-| /project/pk/     | GET         | Fetch a specific project            | N/A          | 200                   | None                         |
-| /pledge/pk       | GET         | Fetch a specific pledge             | N/A          | 200                   | None                         |
-| /users/          | POST        | Create a new user                   | JSON Payload | 200                   | authorised user              |
-| /users/pk/       | GET         | Fetch a specific user               | N/A          | 200                   | admin                        |
-| /users/          | get         | Fetch all users                     | N/A          | 200                   | admin                        |
-| /api-auth-token/ | POST        | Obtain auth Token                   | JSON Payload | authorised user       | none.                        |
+PROJECTS APP
+
+APPS CONFIGURATION
+
+WHAT THIS DOES:
+        When Django starts up and this app is "ready", import the signals module.
+        
+        SIGNALS are like "event listeners" in Django.
+        They let you run code automatically when certain things happen.
+        
+        Example: "When a new pledge is created, automatically update the project's current_content"
+
+HOW PROJECTS AND PLEDGES RELATE
+# 🔄 How Project & Pledge Relate
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         PROJECT                              │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ id: 1                                                │    │
+│  │ title: "The Haunted Lighthouse"                     │    │
+│  │ owner: User #5 (Sarah)                              │    │
+│  │ starting_content: "The lighthouse stood alone..."   │    │
+│  │ current_content: "The lighthouse stood alone...     │    │
+│  │                   The door creaked open...          │    │
+│  │                   A ghost appeared..."              │    │
+│  │ goal: 10                                            │    │
+│  │ is_open: True                                       │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                           │                                  │
+│                           │ project.pledges.all()            │
+│                           ▼                                  │
+│  ┌──────────────────┐  ┌──────────────────┐                 │
+│  │ PLEDGE #1        │  │ PLEDGE #2        │                 │
+│  │ supporter: Tim   │  │ supporter: Alex  │                 │
+│  │ amount: 2        │  │ amount: 1        │                 │
+│  │ add_content:     │  │ add_content:     │                 │
+│  │ "The door        │  │ "A ghost         │                 │
+│  │  creaked open.." │  │  appeared..."    │                 │
+│  └──────────────────┘  └──────────────────┘                 │
+└─────────────────────────────────────────────────────────────┘
 
 
 
+projects/urls.py
+"""
+FULL URL MAP (assuming projects app is at /projects/):
 
-### DB Schema
-![](./database.drawio.svg)
+/projects/                    GET=list all, POST=create project
+/projects/1/                  GET=detail, PUT=update project
+/projects/1/pledges/          POST=create pledge for project 1
+/projects/pledges/            GET=list all pledges, POST=create pledge
+/projects/pledges/1/          GET=detail, PUT=update pledge
+"""
+```
 
-# Link to Deployed project
+---
 
-https://plot-twist-you-are-the-author-fdc848555cc9.herokuapp.com/pledges/34/
+## 🔄 The Complete Data Flow
 
-# Screenshots users/api-token-auth
+Here's what happens when someone **contributes to a story**:
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  REACT FRONTEND                                                      │
+│  User clicks "Add Contribution" on project page                      │
+│  Fills in: add_content = "The hero drew their sword!"               │
+│  Clicks Submit                                                       │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼ POST /projects/1/pledges/
+                                    │ Headers: Authorization: Token abc123
+                                    │ Body: {"add_content": "The hero...", "amount": 1}
+                                    │
+┌─────────────────────────────────────────────────────────────────────┐
+│  urls.py                                                             │
+│  path('<int:project_id>/pledges/', PledgeListCreate.as_view())      │
+│  Routes to → PledgeListCreate.post()                                │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  views.py - PledgeListCreate.post()                                  │
+│  1. Check user is authenticated ✓                                    │
+│  2. Find project with id=1 ✓                                         │
+│  3. Create serializer with data                                      │
+│  4. Validate data                                                    │
+│  5. serializer.save(supporter=request.user)                         │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  serializers.py - PledgeSerializer                                   │
+│  Validates the data, creates Pledge object, saves to database       │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  models.py - Pledge saved to database                                │
+│  id: 5                                                               │
+│  project_id: 1                                                       │
+│  supporter_id: 3                                                     │
+│  add_content: "The hero drew their sword!"                          │
+│  amount: 1                                                           │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼  🔔 SIGNAL FIRES! (post_save)
+┌─────────────────────────────────────────────────────────────────────┐
+│  signals.py - append_pledge_to_project()                             │
+│  1. Detects new pledge was created                                   │
+│  2. Gets the project (id=1)                                          │
+│  3. Appends add_content to project.starting_content                 │
+│  4. Saves project                                                    │
+│                                                                      │
+│  BEFORE: "Once upon a time... A dragon appeared!"                   │
+│  AFTER:  "Once upon a time... A dragon appeared!                    │
+│           The hero drew their sword!"                                │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  Response sent back to React                                         │
+│  Status: 201 Created                                                 │
+│  Body: {"id": 5, "add_content": "The hero...", ...}                 │
+└─────────────────────────────────────────────────────────────────────┘
 
-![Desktop Screenshot - POST Auth Token Create](.//plottwist/images/post_api_token_auth.png)
-![Desktop Screenshot - POST User Create](.//plottwist/images/post_users_create_new.png)
+CLOUDINARY
+1. Django Does the Heavy Lifting
+You don't write any Cloudinary-specific code in your views or serializers! The STORAGES setting makes it automatic.
+2. FormData vs JSON
+javascript// ❌ WRONG - JSON can't handle files
 
-# Screenshot pledges
-![Desktop Screenshot - PUT Amend specific pledge](.//plottwist/images/put_pledges_pk.png)
-![Desktop Screenshot - GET Retrieve all pledges](.//plottwist/images/get_pledges_all.png)
+fetch('/projects/', {
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ title: 'Test', image: ??? })  // Can't include file!
+})
 
-# Screenshots projects
-![Desktop Screenshot - GET Retrieve specific project](.//plottwist/images/get_project_pk.png)
-![Desktop Screenshot - POST Creat new project](.//plottwist/images/post_project_create_new.png)
+// ✅ CORRECT - FormData handles files
+const formData = new FormData();
+formData.append('image', file);
+fetch('/projects/', {
+  body: formData  // Browser sets Content-Type automatically
+})
+```
 
-# Instructions to register a new user (in insomnia)
+### 3. **URL Structure**
+```
+OLD (Heroku local):
+https://plot-twist-you-are-the-author.herokuapp.com/media/project_images/lighthouse.jpg
+       └── Your Heroku app ──────────────────────────┘└── Local file path ──────────┘
 
-Create a post
-POST /users/ new user
-enter JSON 
-{
-    "password": "(enter the password)", [CharField]
-    "username": "(enter the username) [Charfield]
-}
+NEW (Cloudinary):
+https://res.cloudinary.com/dpki1hl3c/image/upload/v1/media/project_images/lighthouse_abc123
+       └── Cloudinary CDN ─┘└─ Your cloud ┘              └── Path in Cloudinary ─────────┘
 
-press send - dont forget to write details down.
+I integrated Cloudinary for image storage because Heroku has an ephemeral filesystem - files disappear after 24 hours. 
+I configured Django's STORAGES setting to automatically route all media uploads to Cloudinary. 
+The frontend sends images via FormData, Django's ImageField handles validation, and the cloudinary-storage package transparently uploads to their CDN. 
+The database only stores the URL, and images are served directly from Cloudinary's global CDN for fast loading.
 
-# Instructions to create a new fundraiser/project
+Here's every URL your backend responds to:
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  ENDPOINT                        METHOD    WHAT IT DOES             │
+├─────────────────────────────────────────────────────────────────────┤
+│  /                               GET       Welcome message          │
+│  /admin/                         GET       Django admin panel       │
+├─────────────────────────────────────────────────────────────────────┤
+│  /api-token-auth/                POST      Login (get token)        │
+├─────────────────────────────────────────────────────────────────────┤
+│  /users/                         GET       List all users           │
+│  /users/                         POST      Register new user        │
+│  /users/1/                       GET       Get user #1              │
+├─────────────────────────────────────────────────────────────────────┤
+│  /projects/                      GET       List all projects        │
+│  /projects/                      POST      Create new project       │
+│  /projects/1/                    GET       Get project #1 + pledges │
+│  /projects/1/                    PUT       Update project #1        │
+│  /projects/1/pledges/            POST      Add pledge to project #1 │
+│  /projects/pledges/              GET       List all pledges         │
+│  /projects/pledges/              POST      Create pledge            │
+│  /projects/pledges/1/            GET       Get pledge #1            │
+│  /projects/pledges/1/            PUT       Update pledge #1         │
+└─────────────────────────────────────────────────────────────────────┘
 
-Create a post 
-POST /project/ - create new project
-enter JSON
-{
-    "title": [charfield]
-	"description": [textfield]
-	"goal": [integerfield]
-	"image": [url feild]
-	"genre": [charfield]
-	"startingcontent": [charfield]
-	"is_open": [boolean]
-}
-
-Fill in the relevant details.
-Hit send.

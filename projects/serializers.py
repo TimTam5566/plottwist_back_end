@@ -10,6 +10,43 @@ from rest_framework import serializers
 from django.apps import apps
 
 # ============================================================
+# PLEDGE SERIALIZER - Basic pledge data
+# ============================================================
+class PledgeSerializer(serializers.ModelSerializer):
+    supporter = serializers.ReadOnlyField(source='supporter.id')
+    supporter_username = serializers.ReadOnlyField(source='supporter.username')
+    # ^^^ ADD THIS: Returns the username for display on frontend
+    
+    class Meta:
+        model = apps.get_model('projects.Pledge')
+        fields = '__all__'
+    
+    def create(self, validated_data):
+        """
+        When a pledge is created, append its content to the project's current_content
+        with proper paragraph spacing (\n\n)
+        """
+        # Create the pledge first
+        pledge = super().create(validated_data)
+        
+        # Get the project and append the new content with spacing
+        project = pledge.project
+        
+        if project.current_content and project.current_content.strip():
+            # Add double newline for paragraph spacing
+            project.current_content = project.current_content.strip() + "\n\n" + pledge.add_content.strip()
+        else:
+            # If no current content yet, start with starting_content + new content
+            if project.starting_content and project.starting_content.strip():
+                project.current_content = project.starting_content.strip() + "\n\n" + pledge.add_content.strip()
+            else:
+                project.current_content = pledge.add_content.strip()
+        
+        project.save()
+        return pledge
+
+
+# ============================================================
 # PROJECT SERIALIZER - Basic project data
 # ============================================================
 class ProjectSerializer(serializers.ModelSerializer):
@@ -21,29 +58,14 @@ class ProjectSerializer(serializers.ModelSerializer):
     fields = '__all__' means include everything:
     id, title, description, goal, image, genre, content_type,
     owner, starting_content, current_content, is_open, date_created 
-
     """
+    owner_username = serializers.ReadOnlyField(source='owner.username')
+    # ^^^ ADD THIS: Returns owner's username for display
+    
     class Meta:
         model = apps.get_model('projects.Project')
         fields = '__all__'
 
-# ============================================================
-# PLEDGE SERIALIZER - Basic pledge data
-# ============================================================
-class PledgeSerializer(serializers.ModelSerializer):
-    supporter = serializers.ReadOnlyField(source='owner.id') # check for bugs may need to be supporter.id
-    
-    """
-    ReadOnlyField = This field is OUTPUT only, never INPUT
-    
-    Converts Pledge model ↔ JSON
-    
-    This might cause issues - worth checking!
-    """
-
-    class Meta:
-        model = apps.get_model('projects.Pledge')
-        fields = '__all__'
 
 # ============================================================
 # PROJECT DETAIL SERIALIZER - Project with nested pledges
@@ -58,6 +80,7 @@ class ProjectDetailSerializer(ProjectSerializer):
     USED FOR: Detail view (viewing one specific project)
     """
     pledges = PledgeSerializer(many=True, read_only=True)
+    owner_username = serializers.ReadOnlyField(source='owner.username')
     """
     NESTED SERIALIZER:
     This includes all pledges for this project inside the response!
@@ -69,27 +92,24 @@ class ProjectDetailSerializer(ProjectSerializer):
     {
         "id": 1,
         "title": "Haunted Lighthouse",
-        "description": "A spooky tale...",
+        "owner_username": "alice",
         "pledges": [
-            {"id": 1, "amount": 2, "add_content": "The door creaked..."},
-            {"id": 2, "amount": 1, "add_content": "A ghost appeared..."}
+            {
+                "id": 1, 
+                "amount": 2, 
+                "add_content": "The door creaked...",
+                "supporter": 5,
+                "supporter_username": "bob",
+                "anonymous": false
+            }
         ]
     }
-    
-    This works because of related_name='pledges' in the Pledge model!
     """
 
     def update(self, instance, validated_data):
         """
         CUSTOM UPDATE METHOD:
         Controls exactly which fields can be updated.
-        
-        instance = the existing project in the database
-        validated_data = the new data from the request
-        
-        .get('field', default) means:
-        "Get 'field' from new data, or keep the existing value if not provided"
-        
         """
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get('description', instance.description)
@@ -99,9 +119,9 @@ class ProjectDetailSerializer(ProjectSerializer):
         instance.starting_content = validated_data.get('starting_content', instance.starting_content)
         instance.current_content = validated_data.get('current_content', instance.current_content)
         instance.is_open = validated_data.get('is_open', instance.is_open)
-        # date_created and owner are read-only and shouldn't be updated they are set when project is created and are permaanent.
         instance.save()
         return instance
+
 
 # ============================================================
 # PLEDGE DETAIL SERIALIZER
@@ -109,17 +129,12 @@ class ProjectDetailSerializer(ProjectSerializer):
 class PledgeDetailSerializer(PledgeSerializer):
     """
     Extended pledge serializer with custom update logic.
-    
-    NOTE: References instance.anonymous but that field doesn't exist in the model!
-    This might be leftover from an earlier version or a planned feature.
     """
     def update(self, instance, validated_data):
-        # Update only editable fields
         instance.amount = validated_data.get('amount', instance.amount)
         instance.comment = validated_data.get('comment', instance.comment)
         instance.add_content = validated_data.get('add_content', instance.add_content)
         instance.anonymous = validated_data.get('anonymous', instance.anonymous)
         instance.project = validated_data.get('project', instance.project)
-        # date_created and supporter are read-only and shouldn't be updated
         instance.save()
         return instance
